@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react"
 import Navbar from "../components/Navbar"
-import { z } from "zod"
 import { BookingDetails } from "../types/type";
 import { viewBookingSchema } from "../types/validationBooking";
 import { useSearchParams } from "react-router-dom";
 import apiClient, { isAxiosError } from "../services/apiService";
+import LoadingWrapper from "../wrappers/LoadingWrapper";
+import { toast } from "react-toastify";
 
 export default function CheckBooking() {
 
@@ -16,7 +17,6 @@ export default function CheckBooking() {
         booking_trx_id: bookingTrxId || ""
     });
 
-    const [formErrors, setFormErrors] = useState<z.ZodIssue[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [bookingDetails, setBookingDetails] = useState<BookingDetails | null>(null);
 
@@ -58,9 +58,12 @@ export default function CheckBooking() {
             )
             setBookingDetails(response.data.data);
         } catch (error: unknown) {
-            console.log(formData);
             if (isAxiosError(error)) {
-                setError(error.message);
+                if (error.response?.status == 404) {
+                    toast.error("Booking not found!", {className: 'w-[400px] h-[70px] poppins'})
+                } else {
+                    setError(error.message);   
+                }
             } else {
                 setError("An unexpected error occured");
             }
@@ -72,10 +75,19 @@ export default function CheckBooking() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        setBookingDetails(null);
+
         const validation = viewBookingSchema.safeParse(formData);
 
         if (!validation.success) {
-            setFormErrors(validation.error.issues);
+            validation.error.issues.forEach(issue => {
+                if (issue.path.includes("booking_trx_id")) {
+                  toast.error("Booking TRX ID is required", {className: 'w-[400px] h-[70px] poppins'});
+                }
+                if (issue.path.includes("phone_number")) {
+                    toast.error("Phone number is required", {className: 'w-[400px] h-[70px] poppins'});
+                }
+              });
             return;
         }
 
@@ -88,12 +100,14 @@ export default function CheckBooking() {
                     ...formData,
                 }
             )
-
             setBookingDetails(response.data.data);
         } catch (error: unknown) {
-            console.log(formData);
             if (isAxiosError(error)) {
-                setError(error.message);
+                if (error.response?.status == 404) {
+                    toast.error("Booking not found!", {className: 'w-[400px] h-[70px] poppins'})
+                } else {
+                    setError(error.message);   
+                }
             } else {
                 setError("An unexpected error occured");
             }
@@ -144,12 +158,9 @@ export default function CheckBooking() {
                         value={formData.booking_trx_id}
                         id="name"
                         className="appearance-none outline-none w-full py-3 font-semibold placeholder:font-normal placeholder:text-[#000929]"
-                        placeholder="Write your booking trx id"
+                        placeholder="Write your Booking TRX ID"
                     />
                     </div>
-                    {formErrors.find((error) => error.path.includes("booking_trx_id")) && (
-                        <p className="text-red-500">Booking TRX ID is required</p>
-                    )}
                 </div>
                 <div className="flex flex-col w-full gap-2">
                     <label htmlFor="phone" className="font-semibold">
@@ -171,9 +182,6 @@ export default function CheckBooking() {
                         placeholder="Write your valid number"
                     />
                     </div>
-                    {formErrors.find((error) => error.path.includes("phone_number")) && (
-                        <p className="text-red-500">Phone number is required</p>
-                    )}
                 </div>
                 <button
                     disabled={isLoading}
@@ -349,7 +357,10 @@ export default function CheckBooking() {
                     </div>
                     </div>
                 )}
+                {isLoading && (
+                    <LoadingWrapper />
+                )}
             </section>
-            </>
+        </>
     )
 }

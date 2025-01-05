@@ -3,6 +3,7 @@ import { Office } from "../types/type";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import apiClient from "../services/apiService";
+import LoadingWrapper from "./LoadingWrapper";
 
 export default function BrowseOfficeWrapper() {
 
@@ -24,7 +25,7 @@ export default function BrowseOfficeWrapper() {
     }, []);
 
     if (loading) {
-        return <p>Loading data..</p>;
+        return <LoadingWrapper />
     }
 
     if (error) {

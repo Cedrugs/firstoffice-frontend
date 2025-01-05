@@ -4,6 +4,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { useState, useEffect } from "react";
 import { Office } from "../types/type";
 import apiClient from "../services/apiService";
+import LoadingWrapper from "../wrappers/LoadingWrapper";
 
 export default function Details() {
 
@@ -27,7 +28,7 @@ export default function Details() {
     }, []);
 
     if (loading) {
-        return <p>Loading data..</p>;
+        return <LoadingWrapper />
     }
 
     if (error) {

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { City } from '../types/type';
 import { Link } from "react-router-dom";
 import apiClient from "../services/apiService";
+import LoadingWrapper from "./LoadingWrapper";
 
 export default function BrowseCityWrapper() {
 
@@ -25,7 +26,7 @@ export default function BrowseCityWrapper() {
     }, []);
 
     if (loading) {
-        return <p>Loading data..</p>;
+        return <LoadingWrapper />;
     }
 
     if (error) {

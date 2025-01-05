@@ -4,6 +4,7 @@ import { City } from "../types/type";
 import OfficeCard from "../components/OfficeCard";
 import Navbar from "../components/Navbar";
 import apiClient from "../services/apiService";
+import LoadingWrapper from "../wrappers/LoadingWrapper";
 
 export default function CityDetails() {
 
@@ -27,11 +28,11 @@ export default function CityDetails() {
     }, []);
 
     if (loading) {
-        return <p>Loading data..</p>;
+        return <LoadingWrapper />
     }
 
     if (error) {
-        return <p>Error loading data: {error}</p>;
+        return <p>Error loading data!</p>
     }
 
     return(

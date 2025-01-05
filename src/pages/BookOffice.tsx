@@ -2,9 +2,10 @@ import Navbar from "../components/Navbar";
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Office } from "../types/type";
-import { z } from "zod";
 import { bookingSchema } from "../types/validationBooking";
 import apiClient, { isAxiosError } from "../services/apiService";
+import LoadingWrapper from "../wrappers/LoadingWrapper";
+import { toast } from "react-toastify";
 
 export default function BookOffice() {
 
@@ -12,6 +13,9 @@ export default function BookOffice() {
     const [office, setOffice] = useState<Office | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [unqiueCode, setUniqueCode] = useState<number>(0);
+    const [totalAmountWithUniqueCode, setTotalAmountWithUniqueCode] = useState<number>(0);
     const navigate = useNavigate();
     const baseURL = import.meta.env.VITE_REACT_BASE_URL + 'storage';
 
@@ -36,7 +40,17 @@ export default function BookOffice() {
         const validation = bookingSchema.safeParse(formData);
 
         if (!validation.success) {
-            setFormErrors(validation.error.issues);
+            validation.error.issues.forEach(issue => {
+                if (issue.path.includes("name")) {
+                    toast.error("Name is required!", {className: 'w-[400px] h-[70px] poppins'})
+                }
+                if (issue.path.includes("phone_number")) {
+                    toast.error("Phone Number is required!", {className: 'w-[400px] h-[70px] poppins'})
+                }
+                if (issue.path.includes("started_at")) {
+                    toast.error("Start Date is required!", {className: 'w-[400px] h-[70px] poppins'})
+                }
+            })
             return;
         }
 
@@ -68,13 +82,6 @@ export default function BookOffice() {
         }
     }
 
-    const [formErrors, setFormErrors] = useState<z.ZodIssue[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
-
-    const [unqiueCode, setUniqueCode] = useState<number>(0);
-    const [totalAmountWithUniqueCode, setTotalAmountWithUniqueCode] = useState<number>(0);
-     
-
     useEffect(() => {
         apiClient
         .get(`/api/office/${slug}`)
@@ -103,7 +110,7 @@ export default function BookOffice() {
     }, []);
 
     if (loading) {
-        return <p>Loading data..</p>;
+        return <LoadingWrapper />;
     }
 
     if (error) {
@@ -176,9 +183,6 @@ export default function BookOffice() {
                         className="appearance-none outline-none w-full py-3 font-semibold placeholder:font-normal placeholder:text-[#000929]"
                         placeholder="Write your complete name"
                         />
-                        {formErrors.find((error) => error.path.includes("name")) && (
-                            <p className="text-red-500">Name is required</p>
-                        )}
                     </div>
                     </div>
                     <div className="flex flex-col gap-2">
@@ -200,9 +204,6 @@ export default function BookOffice() {
                         className="appearance-none outline-none w-full py-3 font-semibold placeholder:font-normal placeholder:text-[#000929]"
                         placeholder="Write your valid number"
                         />
-                        {formErrors.find((error) => error.path.includes("phone_number")) && (
-                            <p className="text-red-500">Phone number is required</p>
-                        )}
                     </div>
                     </div>
                     <div className="flex flex-col gap-2">
@@ -223,9 +224,6 @@ export default function BookOffice() {
                         id="date"
                         className="relative appearance-none outline-none w-full py-3 font-semibold [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0"
                         />
-                        {formErrors.find((error) => error.path.includes("started_at")) && (
-                            <p className="text-red-500">Started at date is required</p>
-                        )}
                     </div>
                     </div>
                 </div>
